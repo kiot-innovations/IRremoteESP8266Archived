@@ -175,6 +175,12 @@
 #define DECODE_GICABLE       true
 #define SEND_GICABLE         true
 
+#define SEND_RCA             true
+
+#define SEND_NECSHORT        true
+#define SEND_XMP1            true
+
+
 #if (DECODE_ARGO || DECODE_DAIKIN || DECODE_FUJITSU_AC || DECODE_GREE || \
      DECODE_KELVINATOR || DECODE_MITSUBISHI_AC || DECODE_TOSHIBA_AC || \
      DECODE_TROTEC || DECODE_HAIER_AC || DECODE_HITACHI_AC || \
@@ -188,7 +194,7 @@
 // Note: If you plan to send IR messages in the callbacks of the AsyncWebserver
 //       library, you need to set ALLOW_DELAY_CALLS to false.
 //       Ref: https://github.com/markszabo/IRremoteESP8266/issues/430
-#define ALLOW_DELAY_CALLS true
+#define ALLOW_DELAY_CALLS false
 
 /*
  * Always add to the end of the list and should never remove entries
