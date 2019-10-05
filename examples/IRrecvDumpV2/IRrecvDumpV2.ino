@@ -9,6 +9,8 @@
  *  https://github.com/markszabo/IRremoteESP8266/wiki#ir-receiving
  *
  * Changes:
+ *   Version 0.4 July, 2018
+ *     - Minor improvements and more A/C unit support.
  *   Version 0.3 November, 2017
  *     - Support for A/C decoding for some protcols.
  *   Version 0.2 April, 2017
@@ -157,6 +159,13 @@ void dumpACInfo(decode_results *results) {
     description = ac.toString();
   }
 #endif  // DECODE_HAIER_AC
+#if DECODE_HAIER_AC_YRW02
+  if (results->decode_type == HAIER_AC_YRW02) {
+    IRHaierACYRW02 ac(0);
+    ac.setRaw(results->state);
+    description = ac.toString();
+  }
+#endif  // DECODE_HAIER_AC_YRW02
   // If we got a human-readable description of the message, display it.
   if (description != "")  Serial.println("Mesg Desc.: " + description);
 }

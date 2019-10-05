@@ -133,7 +133,19 @@
 #define IR_LED 4
 // define IR_LED 3  // For an ESP-01 we suggest you use RX/GPIO3/Pin 7.
 #define HTTP_PORT 80  // The port the HTTP server is listening on.
-#define HOSTNAME "ir_server"  // Name of the device you want in mDNS.
+// Name of the device you want in mDNS.
+// NOTE: Changing this will change the MQTT path too unless you override it
+//       via MQTTprefix below.
+#define HOSTNAME "ir_server"
+
+// We obtain our network config via DHCP by default but allow an easy way to
+// use a static IP config.
+#define USE_STATIC_IP false  // Change to 'true' if you don't want to use DHCP.
+#if USE_STATIC_IP
+const IPAddress kIPAddress = IPAddress(10, 0, 1, 78);
+const IPAddress kGateway = IPAddress(10, 0, 1, 1);
+const IPAddress kSubnetMask = IPAddress(255, 255, 255, 0);
+#endif  // USE_STATIC_IP
 
 #ifdef MQTT_ENABLE
 // Address of your MQTT server.
@@ -156,7 +168,7 @@ const char* mqtt_password = "";
 #define argBits "bits"
 #define argRepeat "repeats"
 
-#define _MY_VERSION_ "v0.5"
+#define _MY_VERSION_ "v0.5.1"
 
 #if IR_LED != 1  // Disable debug output if the LED is on the TX (D1) pin.
 #undef DEBUG
@@ -402,7 +414,8 @@ void handleRoot() {
         "<option value='16'>Daikin</option>"
         "<option value='33'>Fujitsu</option>"
         "<option value='24'>Gree</option>"
-        "<option value='38'>Haier</option>"
+        "<option value='38'>Haier (9 bytes)</option>"
+        "<option value='44'>Haier (14 bytes/YR-W02)</option>"
         "<option value='40'>Hitachi (28 bytes)</option>"
         "<option value='41'>Hitachi1 (13 bytes)</option>"
         "<option value='42'>Hitachi2 (53 bytes)</option>"
@@ -505,6 +518,9 @@ void parseStringAndSendAirCon(const uint16_t irType, const String str) {
     case HAIER_AC:
       stateSize = HAIER_AC_STATE_LENGTH;
       break;
+    case HAIER_AC_YRW02:
+      stateSize = HAIER_AC_YRW02_STATE_LENGTH;
+      break;
     case HITACHI_AC:
       stateSize = HITACHI_AC_STATE_LENGTH;
       break;
@@ -592,6 +608,11 @@ void parseStringAndSendAirCon(const uint16_t irType, const String str) {
 #if SEND_HAIER_AC
     case HAIER_AC:
       irsend.sendHaierAC(reinterpret_cast<uint8_t *>(state));
+      break;
+#endif
+#if SEND_HAIER_AC_YRW02
+    case HAIER_AC_YRW02:
+      irsend.sendHaierACYRW02(reinterpret_cast<uint8_t *>(state));
       break;
 #endif
 #if SEND_HITACHI_AC
@@ -832,6 +853,10 @@ void setup_wifi() {
   // We start by connecting to a WiFi network
 
   wifiManager.setTimeout(300);  // Time out after 5 mins.
+#if USE_STATIC_IP
+  // Use a static IP config rather than the one supplied via DHCP.
+  wifiManager.setSTAStaticIPConfig(kIPAddress, kGateway, kSubnetMask);
+#endif  // USE_STATIC_IP
   if (!wifiManager.autoConnect()) {
     debug("Wifi failed to connect and hit timeout.");
     delay(3000);
@@ -1132,6 +1157,7 @@ void sendIRCode(int const ir_type, uint64_t const code, char const * code_str,
     case TOSHIBA_AC:  // 32
     case FUJITSU_AC:  // 33
     case HAIER_AC:  // 38
+    case HAIER_AC_YRW02:  // 44
     case HITACHI_AC:  // 40
     case HITACHI_AC1:  // 41
     case HITACHI_AC2:  // 42
@@ -1235,7 +1261,7 @@ void sendIRCode(int const ir_type, uint64_t const code, char const * code_str,
     case GICABLE:  // 43
       if (bits == 0)
         bits = GICABLE_BITS;
-      repeat = std::max(repeat, (uint16_t) GICABLE_BITS);
+      repeat = std::max(repeat, (uint16_t) GICABLE_MIN_REPEAT);
       irsend.sendGICable(code, bits, repeat);
       break;
 #endif
