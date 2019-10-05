@@ -145,7 +145,7 @@ void send(uint16_t type, uint64_t data, uint16_t nbits);
                            uint8_t subdevice, uint8_t function);
 #endif
 #if SEND_RC5
-  void sendRC5(uint64_t data, uint16_t nbits = RC5X_BITS, uint16_t repeat = 0);
+  void sendRC5(uint64_t data, uint16_t nbits = RC5X_BITS,  uint16_t repeat = 0, uint16_t freq = 36);
   uint16_t encodeRC5(uint8_t address, uint8_t command,
                      bool key_released = false);
   uint16_t encodeRC5X(uint8_t address, uint8_t command,
