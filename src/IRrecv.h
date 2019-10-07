@@ -15,6 +15,7 @@
 #include "IRremoteESP8266.h"
 
 // Constants
+#define modPULSES 256 //increase until memory is used up, max 256, leave at 256.
 #define HEADER         2U  // Usual nr. of header entries.
 #define FOOTER         2U  // Usual nr. of footer (stop bits) entries.
 #define OFFSET_START   1U  // Usual rawbuf entry to start processing from.
@@ -54,6 +55,7 @@
 // information for the interrupt handler
 typedef struct {
   uint8_t recvpin;              // pin for IR data from detector
+  uint8_t modnpin;              // pin for IR data from detector
   uint8_t rcvstate;             // state machine
   uint16_t timer;               // state timer, counts 50uS ticks.
   uint16_t bufsize;             // max. nr. of entries in the capture buffer.
@@ -96,12 +98,14 @@ class decode_results {
   uint16_t rawlen;  // Number of records in rawbuf.
   bool overflow;
   bool repeat;  // Is the result a repeat code?
+  unsigned long frequency;
+  byte no_of_samples;
 };
 
 // main class for receiving IR
 class IRrecv {
  public:
-  explicit IRrecv(uint16_t recvpin, uint16_t bufsize = RAWBUF,
+  explicit IRrecv(uint16_t recvpin, uint16_t modnpin, uint16_t bufsize = RAWBUF,
                   uint8_t timeout = TIMEOUT_MS,
                   bool save_buffer = false);  // Constructor
   ~IRrecv();  // Destructor

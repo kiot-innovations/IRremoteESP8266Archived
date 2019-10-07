@@ -29,6 +29,19 @@ extern "C" {
 static ETSTimer timer;
 #endif
 volatile irparams_t irparams;
+volatile byte countM = 0; // used as a pointer through the buffers for writing and reading (modulated signal)
+volatile byte modIR[modPULSES]; //temp store for modulation pulse durations - changed in interrupt
+byte countM2 = 0; //used as a counter, for the number of modulation samples used in calculating the period.
+uint16_t i = 0; //used to iterate in for loop...integer
+byte j = 0; //used to iterate in for loop..byte
+unsigned long sum = 0; //used in calculating Modulation frequency
+byte sigLen = 0; //used when calculating the modulation period. Only a byte is required.
+
+//Serial Tx buffer - uses Serial.write for faster execution
+//see *** note 6 in README
+// byte txBuffer[5]; //Key(+-)/1,count/1,offset/4,CR/1   <= format of packet sent to AnalysIR over serial
+
+
 irparams_t *irparams_save;  // A copy of the interrupt state while decoding.
 
 #ifndef UNIT_TEST
@@ -37,6 +50,11 @@ static void ICACHE_RAM_ATTR read_timeout(void *arg __attribute__((unused))) {
   if (irparams.rawlen)
     irparams.rcvstate = STATE_STOP;
   os_intr_unlock();
+}
+
+static void modul_intr() {
+  modIR[countM++] = micros(); //just continually record the time-stamp, will be mostly modulations
+  //just save LSB as we are measuring values of 20-50 uSecs only - so only need a byte (LSB)
 }
 
 static void ICACHE_RAM_ATTR gpio_intr() {
@@ -80,6 +98,36 @@ static void ICACHE_RAM_ATTR gpio_intr() {
 }
 #endif  // UNIT_TEST
 
+
+void reportPeriod() { //report period of modulation frequency in nano seconds for more accuracy
+  Serial.print(" Modpulses : ");
+  Serial.println(modPULSES);
+  sum = 0; // UL
+  sigLen = 0; //byte
+  countM2 = 0; //byte
+  for (j = 1; j < (modPULSES - 1); j++) { //i is byte
+    sigLen = (modIR[j] - modIR[j - 1]); //siglen is byte
+    if (sigLen > 50 || sigLen < 10) continue; //this is the period range length exclude extraneous ones
+    sum += sigLen; // sum is UL
+    countM2++; //countM2 is byte
+    modIR[j - 1] = 0; //finished with it so clear for next time
+  }
+  modIR[j - 1] = 0; //now clear last one, which was missed in loop
+  if (countM2 == 0) return; //avoid div by zero = nothing to report
+  sum =  sum * 1000 / countM2; //get it in nano secs
+  sum = 1000000/sum;
+  // now send over serial using buffer
+  // txBuffer[0] = 'M'; //Modulation report is sent as 'M'
+  // txBuffer[1] = countM2; //number of samples used
+  // txBuffer[3] = sum >> 8 & 0xFF; //byte Period MSB
+  // txBuffer[2] = sum & 0xFF; //byte Period LSB
+  // Serial.write(txBuffer, 5);
+  // Serial.println(buffer);
+  // Serial.println("! Signal End !\r\n");
+  // Serial.println("! Signal End !\r\n");
+
+}
+
 // Start of IRrecv class -------------------
 
 // Class constructor
@@ -91,9 +139,10 @@ static void ICACHE_RAM_ATTR gpio_intr() {
 //   save_buffer:  Use a second (save) buffer to decode from. (Def: false)
 // Returns:
 //   An IRrecv class object.
-IRrecv::IRrecv(uint16_t recvpin, uint16_t bufsize, uint8_t timeout,
+IRrecv::IRrecv(uint16_t recvpin, uint16_t modnpin, uint16_t bufsize, uint8_t timeout,
                bool save_buffer) {
   irparams.recvpin = recvpin;
+  irparams.modnpin = modnpin;
   irparams.bufsize = bufsize;
   // Ensure we are going to be able to store all possible values in the
   // capture buffer.
@@ -148,6 +197,9 @@ void IRrecv::enableIRIn() {
 
   // Attach Interrupt
   attachInterrupt(irparams.recvpin, gpio_intr, CHANGE);
+
+  // Attach interrupt for frequency modulation
+  attachInterrupt(irparams.modnpin, modul_intr, FALLING);
 #endif
 }
 
@@ -238,7 +290,7 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
   irparams.rawbuf[irparams.rawlen] = 0;
 
   bool resumed = false;  // Flag indicating if we have resumed.
-
+  reportPeriod();
   // If we were requested to use a save buffer previously, do so.
   if (save == NULL)
     save = irparams_save;
@@ -249,6 +301,8 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
     results->rawbuf = irparams.rawbuf;
     results->rawlen = irparams.rawlen;
     results->overflow = irparams.overflow;
+    results->frequency = sum;
+    results->no_of_samples = countM2;
 #endif
   } else {
     copyIrParams(&irparams, save);  // Duplicate the interrupt's memory.
@@ -258,6 +312,8 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
     results->rawbuf = save->rawbuf;
     results->rawlen = save->rawlen;
     results->overflow = save->overflow;
+    results->frequency = sum;
+    results->no_of_samples = countM2;
   }
 
   // Reset any previously partially processed results.
