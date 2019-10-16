@@ -266,6 +266,16 @@
 #define DECODE_DAIKIN152       true
 #define SEND_DAIKIN152         true
 
+#define DECODE_RCA             false
+#define SEND_RCA               true
+
+#define DECODE_NECSHORT        false
+#define SEND_NECSHORT          true
+
+#define DECODE_XMP1            false
+#define SEND_XMP1              true
+
+
 #if (DECODE_ARGO || DECODE_DAIKIN || DECODE_FUJITSU_AC || DECODE_GREE || \
      DECODE_KELVINATOR || DECODE_MITSUBISHI_AC || DECODE_TOSHIBA_AC || \
      DECODE_TROTEC || DECODE_HAIER_AC || DECODE_HITACHI_AC || \
@@ -286,7 +296,7 @@
 // Note: If you plan to send IR messages in the callbacks of the AsyncWebserver
 //       library, you need to set ALLOW_DELAY_CALLS to false.
 //       Ref: https://github.com/crankyoldgit/IRremoteESP8266/issues/430
-#define ALLOW_DELAY_CALLS true
+#define ALLOW_DELAY_CALLS false
 
 /*
  * Always add to the end of the list and should never remove entries
@@ -540,6 +550,9 @@ const uint16_t kWhirlpoolAcBits = kWhirlpoolAcStateLength * 8;
 const uint16_t kWhirlpoolAcDefaultRepeat = kNoRepeat;
 const uint16_t kWhynterBits = 32;
 const uint8_t  kVestelAcBits = 56;
+const uint16_t kRCABits = 24;  // Excludes the 'start' bit.
+const uint16_t kNECShortBits = 32;  // Excludes the 'start' bit.
+const uint16_t kXMP1Bits = 64;  // Excludes the 'start' bit.
 
 
 // Legacy defines. (Deprecated)

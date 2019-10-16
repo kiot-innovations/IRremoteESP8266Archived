@@ -489,6 +489,59 @@ void IRsend::sendRaw(uint16_t buf[], uint16_t len, uint16_t hz) {
   }
   ledOff();  // We potentially have ended with a mark(), so turn of the LED.
 }
+// Added By Arihant 
+
+void IRsend::sendRaw(uint16_t num, uint16_t i) {
+  // Set IR carrier frequency
+  if(i & 1){
+    space(num);
+  }else{
+    mark(num);
+  }
+}
+
+void IRsend::sendRaw(uint16_t buf[], uint16_t len, uint16_t first_bit, uint16_t sec_bit, uint16_t rpt_cnt, uint16_t hz)
+{
+  enableIROut(hz);
+  for (uint16_t j=0; j<rpt_cnt;j++){
+    // Serial.println("I am repeated");
+    // Serial.println(j);
+      for (uint16_t i = 0; i < first_bit; i++) {
+          if (i & 1) {
+            space(buf[i]);
+          } 
+          else {
+           // Serial.println(buf[i]);
+           mark(buf[i]);
+          }
+    }
+  }
+  for(int j=0;j<rpt_cnt;j++){
+    // Serial.println("I am repeated");
+    // Serial.println(j);
+     for(int i=first_bit;i<first_bit+sec_bit;i++){
+        if (i & 1) {
+            space(buf[i]);
+          } 
+          else {
+           mark(buf[i]);
+          }
+     } 
+  }
+
+  ledOff(); // Just to be sure
+}
+
+void IRsend::enableirout(uint16_t hz)
+{
+	enableIROut(hz);
+}
+void IRsend::Space()
+{
+	ledOff(); // Just to be sure
+}
+// End - Added By Arihant
+
 #endif  // SEND_RAW
 
 // Get the minimum number of repeats for a given protocol.
