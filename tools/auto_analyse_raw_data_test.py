@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Unit tests for auto_analyse_raw_data.py"""
-import StringIO
+from io import StringIO
 import unittest
 import auto_analyse_raw_data as analyse
 
@@ -12,7 +12,7 @@ class TestRawIRMessage(unittest.TestCase):
 
   def test_display_binary(self):
     """Test the display_binary() method."""
-    output = StringIO.StringIO()
+    output = StringIO()
     message = analyse.RawIRMessage(100, [8000, 4000, 500, 500, 500], output,
                                    False)
     self.assertEqual(output.getvalue(), '')
@@ -52,31 +52,35 @@ class TestAutoAnalyseRawData(unittest.TestCase):
 
   def test_dump_constants_simple(self):
     """Simple tests for the dump_constants() function."""
-    ignore = StringIO.StringIO()
-    output = StringIO.StringIO()
+    ignore = StringIO()
+    output = StringIO()
     defs = []
     message = analyse.RawIRMessage(200, [
         7930, 3952, 494, 1482, 520, 1482, 494, 1508, 494, 520, 494, 1482, 494,
         520, 494, 1482, 494, 1482, 494, 3978, 494, 520, 494, 520, 494, 520, 494,
         520, 520, 520, 494, 520, 494, 520, 494, 1482, 494
     ], ignore)
-    analyse.dump_constants(message, defs, output)
+    analyse.dump_constants(message, defs, "BAR", output)
     self.assertEqual(defs, [
-        '#define HDR_MARK 7930U', '#define BIT_MARK 520U',
-        '#define HDR_SPACE 3978U', '#define ONE_SPACE 1508U',
-        '#define ZERO_SPACE 520U'
+        'const uint16_t kBARHdrMark = 7930;',
+        'const uint16_t kBARBitMark = 496;',
+        'const uint16_t kBARHdrSpace = 3965;',
+        'const uint16_t kBAROneSpace = 1485;',
+        'const uint16_t kBARZeroSpace = 520;',
+        'const uint16_t kBARFreq = 38000;  // Hz. (Guessing the most common '
+        'frequency.)'
     ])
     self.assertEqual(output.getvalue(), 'Guessing key value:\n'
-                     'HDR_MARK   = 7930\n'
-                     'HDR_SPACE  = 3978\n'
-                     'BIT_MARK   = 520\n'
-                     'ONE_SPACE  = 1508\n'
-                     'ZERO_SPACE = 520\n')
+                     'kBARHdrMark   = 7930\n'
+                     'kBARHdrSpace  = 3965\n'
+                     'kBARBitMark   = 496\n'
+                     'kBAROneSpace  = 1485\n'
+                     'kBARZeroSpace = 520\n')
 
   def test_dump_constants_aircon(self):
     """More complex tests for the dump_constants() function."""
-    ignore = StringIO.StringIO()
-    output = StringIO.StringIO()
+    ignore = StringIO()
+    output = StringIO()
     defs = []
     message = analyse.RawIRMessage(200, [
         9008, 4496, 644, 1660, 676, 530, 648, 558, 672, 1636, 646, 1660, 644,
@@ -91,19 +95,24 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         650, 558, 646, 560, 646, 560, 668, 1638, 646, 1662, 646, 1660, 646,
         1660, 648
     ], ignore)
-    analyse.dump_constants(message, defs, output)
+    analyse.dump_constants(message, defs, "TEST", output)
     self.assertEqual(defs, [
-        '#define HDR_MARK 9008U', '#define BIT_MARK 676U',
-        '#define HDR_SPACE 4496U', '#define ONE_SPACE 1680U',
-        '#define ZERO_SPACE 584U', '#define SPACE_GAP = 19990U'
+        'const uint16_t kTESTHdrMark = 9008;',
+        'const uint16_t kTESTBitMark = 650;',
+        'const uint16_t kTESTHdrSpace = 4496;',
+        'const uint16_t kTESTOneSpace = 1657;',
+        'const uint16_t kTESTZeroSpace = 554;',
+        'const uint16_t kTESTSpaceGap = 19990;',
+        'const uint16_t kTESTFreq = 38000;  // Hz. (Guessing the most common '
+        'frequency.)'
     ])
     self.assertEqual(output.getvalue(), 'Guessing key value:\n'
-                     'HDR_MARK   = 9008\n'
-                     'HDR_SPACE  = 4496\n'
-                     'BIT_MARK   = 676\n'
-                     'ONE_SPACE  = 1680\n'
-                     'ZERO_SPACE = 584\n'
-                     'SPACE_GAP = 19990\n')
+                     'kTESTHdrMark   = 9008\n'
+                     'kTESTHdrSpace  = 4496\n'
+                     'kTESTBitMark   = 650\n'
+                     'kTESTOneSpace  = 1657\n'
+                     'kTESTZeroSpace = 554\n'
+                     'kTESTSpaceGap = 19990\n')
 
   def test_convert_rawdata(self):
     """Tests for the convert_rawdata() function."""
@@ -111,7 +120,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
     self.assertEqual(analyse.convert_rawdata("0"), [0])
     with self.assertRaises(ValueError) as context:
       analyse.convert_rawdata("")
-    self.assertEqual(context.exception.message,
+    self.assertEqual(str(context.exception),
                      "Raw Data contains a non-numeric value of ''.")
 
     # Single parenthesis
@@ -132,13 +141,13 @@ class TestAutoAnalyseRawData(unittest.TestCase):
     # Bad parentheses
     with self.assertRaises(ValueError) as context:
       analyse.convert_rawdata("}10{")
-    self.assertEqual(context.exception.message,
+    self.assertEqual(str(context.exception),
                      "Raw Data not parsible due to parentheses placement.")
 
     # Non base-10 values
     with self.assertRaises(ValueError) as context:
       analyse.convert_rawdata("10, 20, foo, bar, 30")
-    self.assertEqual(context.exception.message,
+    self.assertEqual(str(context.exception),
                      "Raw Data contains a non-numeric value of 'foo'.")
 
     # A messy usual "good" case.
@@ -155,7 +164,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
     """Tests for the parse_and_report() function."""
 
     # Without code generation.
-    output = StringIO.StringIO()
+    output = StringIO()
     input_str = """
         uint16_t rawbuf[139] = {9008, 4496, 644, 1660, 676, 530, 648, 558, 672,
             1636, 646, 1660, 644, 556, 650, 584, 626, 560, 644, 580, 628, 1680,
@@ -169,10 +178,9 @@ class TestAutoAnalyseRawData(unittest.TestCase):
             532, 672, 536, 646, 560, 646, 558, 648, 558, 670, 534, 650, 558,
             646, 560, 646, 560, 668, 1638, 646, 1662, 646, 1660, 646, 1660,
             648};"""
-    analyse.parse_and_report(input_str, 200, False, output)
+    analyse.parse_and_report(input_str, 200, False, "FOO", output)
     self.assertEqual(
-        output.getvalue(),
-        'Found 139 timing entries.\n'
+        output.getvalue(), 'Found 139 timing entries.\n'
         'Potential Mark Candidates:\n'
         '[9008, 676]\n'
         'Potential Space Candidates:\n'
@@ -182,16 +190,17 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         'Looks like it uses space encoding. Yay!\n'
         '\n'
         'Guessing key value:\n'
-        'HDR_MARK   = 9008\n'
-        'HDR_SPACE  = 4496\n'
-        'BIT_MARK   = 676\n'
-        'ONE_SPACE  = 1680\n'
-        'ZERO_SPACE = 584\n'
-        'SPACE_GAP = 19990\n'
+        'kFOOHdrMark   = 9008\n'
+        'kFOOHdrSpace  = 4496\n'
+        'kFOOBitMark   = 650\n'
+        'kFOOOneSpace  = 1657\n'
+        'kFOOZeroSpace = 554\n'
+        'kFOOSpaceGap = 19990\n'
         '\n'
         'Decoding protocol based on analysis so far:\n'
         '\n'
-        'HDR_MARK+HDR_SPACE+10011000010100000000011000001010010GAP(19990)\n'
+        'kFOOHdrMark+kFOOHdrSpace+10011000010100000000011000001010010GAP(19990)'
+        '\n'
         '  Bits: 35\n'
         '  Hex:  0x4C2803052 (MSB first)\n'
         '        0x250600A19 (LSB first)\n'
@@ -199,7 +208,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '        9938405913 (LSB first)\n'
         '  Bin:  0b10011000010100000000011000001010010 (MSB first)\n'
         '        0b01001010000011000000000101000011001 (LSB first)\n'
-        'BIT_MARK(UNEXPECTED)01000000110001000000000000001111\n'
+        'kFOOBitMark(UNEXPECTED)01000000110001000000000000001111\n'
         '  Bits: 32\n'
         '  Hex:  0x40C4000F (MSB first)\n'
         '        0xF0002302 (LSB first)\n'
@@ -211,13 +220,13 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         'Total Nr. of suspected bits: 67\n')
 
     # With code generation.
-    output = StringIO.StringIO()
+    output = StringIO()
     input_str = """
         uint16_t rawbuf[37] = {7930, 3952, 494, 1482, 520, 1482, 494,
             1508, 494, 520, 494, 1482, 494, 520, 494, 1482, 494, 1482, 494,
             3978, 494, 520, 494, 520, 494, 520, 494, 520, 520, 520, 494, 520,
             494, 520, 494, 1482, 494};"""
-    analyse.parse_and_report(input_str, 200, True, output)
+    analyse.parse_and_report(input_str, 200, True, "FOO", output)
     self.assertEqual(
         output.getvalue(),
         'Found 37 timing entries.\n'
@@ -230,15 +239,15 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         'Looks like it uses space encoding. Yay!\n'
         '\n'
         'Guessing key value:\n'
-        'HDR_MARK   = 7930\n'
-        'HDR_SPACE  = 3978\n'
-        'BIT_MARK   = 520\n'
-        'ONE_SPACE  = 1508\n'
-        'ZERO_SPACE = 520\n'
+        'kFOOHdrMark   = 7930\n'
+        'kFOOHdrSpace  = 3965\n'
+        'kFOOBitMark   = 496\n'
+        'kFOOOneSpace  = 1485\n'
+        'kFOOZeroSpace = 520\n'
         '\n'
         'Decoding protocol based on analysis so far:\n'
         '\n'
-        'HDR_MARK+HDR_SPACE+11101011\n'
+        'kFOOHdrMark+kFOOHdrSpace+11101011\n'
         '  Bits: 8\n'
         '  Hex:  0xEB (MSB first)\n'
         '        0xD7 (LSB first)\n'
@@ -246,7 +255,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '        215 (LSB first)\n'
         '  Bin:  0b11101011 (MSB first)\n'
         '        0b11010111 (LSB first)\n'
-        'UNEXPECTED->HDR_SPACE+00000001\n'
+        'UNEXPECTED->kFOOHdrSpace+00000001\n'
         '  Bits: 8\n'
         '  Hex:  0x01 (MSB first)\n'
         '        0x80 (LSB first)\n'
@@ -259,44 +268,122 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '\n'
         'Generating a VERY rough code outline:\n'
         '\n'
+        '// Copyright 2019 David Conran (crankyoldgit)\n'
+        '// Support for FOO protocol\n'
+        '\n'
+        '#include "IRrecv.h"\n'
+        '#include "IRsend.h"\n'
+        '#include "IRutils.h"\n'
+        '\n'
         "// WARNING: This probably isn't directly usable. It's a guide only.\n"
-        '#define HDR_MARK 7930U\n'
-        '#define BIT_MARK 520U\n'
-        '#define HDR_SPACE 3978U\n'
-        '#define ONE_SPACE 1508U\n'
-        '#define ZERO_SPACE 520U\n'
-        '#define XYZ_BITS 16U\n'
+        '\n'
+        '// See https://github.com/crankyoldgit/IRremoteESP8266/wiki/'
+        'Adding-support-for-a-new-IR-protocol\n'
+        '// for details of how to include this in the library.\n'
+        'const uint16_t kFOOHdrMark = 7930;\n'
+        'const uint16_t kFOOBitMark = 496;\n'
+        'const uint16_t kFOOHdrSpace = 3965;\n'
+        'const uint16_t kFOOOneSpace = 1485;\n'
+        'const uint16_t kFOOZeroSpace = 520;\n'
+        'const uint16_t kFOOFreq = 38000;  // Hz. (Guessing the most common'
+        ' frequency.)\n'
+        'const uint16_t kFOOBits = 16;  // Move to IRremoteESP8266.h\n'
+        'const uint16_t kFOOOverhead = 5;\n'
+        '#if SEND_FOO\n'
         '// Function should be safe up to 64 bits.\n'
-        'void IRsend::sendXYZ(const uint64_t data, const uint16_t nbits,'
+        'void IRsend::sendFOO(const uint64_t data, const uint16_t nbits,'
         ' const uint16_t repeat) {\n'
-        '  enableIROut(38);  // A guess. Most common frequency.\n'
+        '  enableIROut(kFOOFreq);\n'
         '  for (uint16_t r = 0; r <= repeat; r++) {\n'
+        '    uint64_t send_data = data;\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
-        '    // Data\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
+        '    // Data Section #1\n'
         '    // e.g. data = 0xEB, nbits = 8\n'
-        '    sendData(BIT_MARK, ONE_SPACE, BIT_MARK, ZERO_SPACE, data, nbits,'
-        ' true);\n'
+        '    sendData(kFOOBitMark, kFOOOneSpace, kFOOBitMark, kFOOZeroSpace,'
+        ' send_data, 8, true);\n'
+        '    send_data >>= 8;\n'
         '    // Footer\n'
-        '    mark(BIT_MARK);\n'
-        '    space(HDR_SPACE);\n'
-        '    // Data\n'
+        '    mark(kFOOBitMark);\n'
+        '    space(kFOOHdrSpace);\n'
+        '    // Data Section #2\n'
         '    // e.g. data = 0x1, nbits = 8\n'
-        '    sendData(BIT_MARK, ONE_SPACE, BIT_MARK, ZERO_SPACE, data, nbits,'
-        ' true);\n'
+        '    sendData(kFOOBitMark, kFOOOneSpace, kFOOBitMark, kFOOZeroSpace,'
+        ' send_data, 8, true);\n'
+        '    send_data >>= 8;\n'
         '    // Footer\n'
-        '    mark(BIT_MARK);\n'
-        '    space(100000);  // A 100% made up guess of the gap between'
-        ' messages.\n'
+        '    mark(kFOOBitMark);\n'
+        '    space(kDefaultMessageGap);  // A 100% made up guess of the gap'
+        ' between messages.\n'
         '  }\n'
-        '}\n')
+        '}\n'
+        '#endif  // SEND_FOO\n'
+        '\n'
+        '#if DECODE_FOO\n'
+        '// Function should be safe up to 64 bits.\n'
+        'bool IRrecv::decodeFOO(decode_results *results, const uint16_t nbits,'
+        ' const bool strict) {\n'
+        '  if (results->rawlen < 2 * nbits + kFOOOverhead)\n'
+        '    return false;  // Too short a message to match.\n'
+        '  if (strict && nbits != kFOOBits)\n'
+        '    return false;\n'
+        '\n'
+        '  uint16_t offset = kStartOffset;\n'
+        '  uint64_t data = 0;\n'
+        '  match_result_t data_result;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Data Section #1\n'
+        '  // e.g. data_result.data = 0xEB, nbits = 8\n'
+        '  data_result = matchData(&(results->rawbuf[offset]), 8,\n'
+        '                          kFOOBitMark, kFOOOneSpace,\n'
+        '                          kFOOBitMark, kFOOZeroSpace);\n'
+        '  offset += data_result.used;\n'
+        '  if (data_result.success == false) return false;  // Fail\n'
+        '  data <<= 8;  // Make room for the new bits of data.\n'
+        '  data |= data_result.data;\n'
+        '\n'
+        '  // Footer\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOBitMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Data Section #2\n'
+        '  // e.g. data_result.data = 0x1, nbits = 8\n'
+        '  data_result = matchData(&(results->rawbuf[offset]), 8,\n'
+        '                          kFOOBitMark, kFOOOneSpace,\n'
+        '                          kFOOBitMark, kFOOZeroSpace);\n'
+        '  offset += data_result.used;\n'
+        '  if (data_result.success == false) return false;  // Fail\n'
+        '  data <<= 8;  // Make room for the new bits of data.\n'
+        '  data |= data_result.data;\n'
+        '\n'
+        '  // Footer\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOBitMark))\n'
+        '    return false;\n'
+        '\n'
+        '  // Success\n'
+        '  results->decode_type = decode_type_t::FOO;\n'
+        '  results->bits = nbits;\n'
+        '  results->value = data;\n'
+        '  results->command = 0;\n'
+        '  results->address = 0;\n'
+        '  return true;\n'
+        '}\n'
+        '#endif  // DECODE_FOO\n')
 
   def test_unusual_gaps(self):
     """Tests for unusual Space Gaps in parse_and_report() function."""
 
     # Tests for unusual Gaps. (Issue #482)
-    output = StringIO.StringIO()
+    output = StringIO()
     input_str = """
         uint16_t rawbuf[272] = {3485, 3512, 864, 864, 864, 2620, 864, 864,
             864, 2620, 864, 2620, 864, 2620, 864, 2620, 864, 2620, 864, 864,
@@ -323,7 +410,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
             864, 2620, 864, 2620, 864, 864, 864, 2620, 864, 2620, 864, 864,
             864, 864, 864, 864, 864, 2620, 864, 2620, 864, 864, 864, 2620,
             864, 2620, 864, 864, 864, 864, 3485, 3512, 864, 13996};"""
-    analyse.parse_and_report(input_str, 200, True, output)
+    analyse.parse_and_report(input_str, 200, True, "FOO", output)
     self.assertEqual(
         output.getvalue(),
         'Found 272 timing entries.\n'
@@ -336,16 +423,16 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         'Looks like it uses space encoding. Yay!\n'
         '\n'
         'Guessing key value:\n'
-        'HDR_MARK   = 3485\n'
-        'HDR_SPACE  = 3512\n'
-        'BIT_MARK   = 864\n'
-        'ONE_SPACE  = 2620\n'
-        'ZERO_SPACE = 864\n'
-        'SPACE_GAP = 13996\n'
+        'kFOOHdrMark   = 3485\n'
+        'kFOOHdrSpace  = 3512\n'
+        'kFOOBitMark   = 864\n'
+        'kFOOOneSpace  = 2620\n'
+        'kFOOZeroSpace = 864\n'
+        'kFOOSpaceGap = 13996\n'
         '\n'
         'Decoding protocol based on analysis so far:\n'
         '\n'
-        'HDR_MARK+HDR_SPACE+01011111010111110100000001000000\n'
+        'kFOOHdrMark+kFOOHdrSpace+01011111010111110100000001000000\n'
         '  Bits: 32\n'
         '  Hex:  0x5F5F4040 (MSB first)\n'
         '        0x0202FAFA (LSB first)\n'
@@ -353,7 +440,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '        33749754 (LSB first)\n'
         '  Bin:  0b01011111010111110100000001000000 (MSB first)\n'
         '        0b00000010000000101111101011111010 (LSB first)\n'
-        'HDR_MARK+HDR_SPACE+01011111010111110100000001000000\n'
+        'kFOOHdrMark+kFOOHdrSpace+01011111010111110100000001000000\n'
         '  Bits: 32\n'
         '  Hex:  0x5F5F4040 (MSB first)\n'
         '        0x0202FAFA (LSB first)\n'
@@ -361,8 +448,8 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '        33749754 (LSB first)\n'
         '  Bin:  0b01011111010111110100000001000000 (MSB first)\n'
         '        0b00000010000000101111101011111010 (LSB first)\n'
-        'HDR_MARK+HDR_SPACE+GAP(13996)'
-        'HDR_MARK+HDR_SPACE+00101111001011110110110001101100\n'
+        'kFOOHdrMark+kFOOHdrSpace+GAP(13996)kFOOHdrMark+kFOOHdrSpace+0010111100'
+        '1011110110110001101100\n'
         '  Bits: 32\n'
         '  Hex:  0x2F2F6C6C (MSB first)\n'
         '        0x3636F4F4 (LSB first)\n'
@@ -370,7 +457,7 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '        909571316 (LSB first)\n'
         '  Bin:  0b00101111001011110110110001101100 (MSB first)\n'
         '        0b00110110001101101111010011110100 (LSB first)\n'
-        'HDR_MARK+HDR_SPACE+00101111001011110110110001101100\n'
+        'kFOOHdrMark+kFOOHdrSpace+00101111001011110110110001101100\n'
         '  Bits: 32\n'
         '  Hex:  0x2F2F6C6C (MSB first)\n'
         '        0x3636F4F4 (LSB first)\n'
@@ -378,92 +465,375 @@ class TestAutoAnalyseRawData(unittest.TestCase):
         '        909571316 (LSB first)\n'
         '  Bin:  0b00101111001011110110110001101100 (MSB first)\n'
         '        0b00110110001101101111010011110100 (LSB first)\n'
-        'HDR_MARK+HDR_SPACE+GAP(13996)\n'
+        'kFOOHdrMark+kFOOHdrSpace+GAP(13996)\n'
         'Total Nr. of suspected bits: 128\n'
         '\n'
         'Generating a VERY rough code outline:\n'
         '\n'
+        '// Copyright 2019 David Conran (crankyoldgit)\n'
+        '// Support for FOO protocol\n'
+        '\n'
+        '#include "IRrecv.h"\n'
+        '#include "IRsend.h"\n'
+        '#include "IRutils.h"\n'
+        '\n'
         "// WARNING: This probably isn't directly usable. It's a guide only.\n"
-        '#define HDR_MARK 3485U\n'
-        '#define BIT_MARK 864U\n'
-        '#define HDR_SPACE 3512U\n'
-        '#define ONE_SPACE 2620U\n'
-        '#define ZERO_SPACE 864U\n'
-        '#define SPACE_GAP = 13996U\n'
-        '#define XYZ_BITS 128U\n'
-        '#define XYZ_STATE_LENGTH 16U\n'
+        '\n'
+        '// See https://github.com/crankyoldgit/IRremoteESP8266/wiki/'
+        'Adding-support-for-a-new-IR-protocol\n'
+        '// for details of how to include this in the library.\n'
+        'const uint16_t kFOOHdrMark = 3485;\n'
+        'const uint16_t kFOOBitMark = 864;\n'
+        'const uint16_t kFOOHdrSpace = 3512;\n'
+        'const uint16_t kFOOOneSpace = 2620;\n'
+        'const uint16_t kFOOZeroSpace = 864;\n'
+        'const uint16_t kFOOSpaceGap = 13996;\n'
+        'const uint16_t kFOOFreq = 38000;  // Hz. (Guessing the most common'
+        ' frequency.)\n'
+        'const uint16_t kFOOBits = 128;  // Move to IRremoteESP8266.h\n'
+        'const uint16_t kFOOStateLength = 16;  // Move to IRremoteESP8266.h\n'
+        'const uint16_t kFOOOverhead = 16;\n'
         "// DANGER: More than 64 bits detected. A uint64_t for 'data' won't"
         ' work!\n'
+        '#if SEND_FOO\n'
         '// Function should be safe up to 64 bits.\n'
-        'void IRsend::sendXYZ(const uint64_t data, const uint16_t nbits,'
+        'void IRsend::sendFOO(const uint64_t data, const uint16_t nbits,'
         ' const uint16_t repeat) {\n'
-        '  enableIROut(38);  // A guess. Most common frequency.\n'
+        '  enableIROut(kFOOFreq);\n'
         '  for (uint16_t r = 0; r <= repeat; r++) {\n'
+        '    uint64_t send_data = data;\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
-        '    // Data\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
+        '    // Data Section #1\n'
         '    // e.g. data = 0x5F5F4040, nbits = 32\n'
-        '    sendData(BIT_MARK, ONE_SPACE, BIT_MARK, ZERO_SPACE, data, nbits,'
-        ' true);\n'
+        '    sendData(kFOOBitMark, kFOOOneSpace, kFOOBitMark, kFOOZeroSpace,'
+        ' send_data, 32, true);\n'
+        '    send_data >>= 32;\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
-        '    // Data\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
+        '    // Data Section #2\n'
         '    // e.g. data = 0x5F5F4040, nbits = 32\n'
-        '    sendData(BIT_MARK, ONE_SPACE, BIT_MARK, ZERO_SPACE, data, nbits,'
-        ' true);\n'
+        '    sendData(kFOOBitMark, kFOOOneSpace, kFOOBitMark, kFOOZeroSpace,'
+        ' send_data, 32, true);\n'
+        '    send_data >>= 32;\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
         '    // Gap\n'
-        '    mark(BIT_MARK);\n'
-        '    space(SPACE_GAP);\n'
+        '    mark(kFOOBitMark);\n'
+        '    space(kFOOSpaceGap);\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
-        '    // Data\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
+        '    // Data Section #3\n'
         '    // e.g. data = 0x2F2F6C6C, nbits = 32\n'
-        '    sendData(BIT_MARK, ONE_SPACE, BIT_MARK, ZERO_SPACE, data, nbits,'
-        ' true);\n'
+        '    sendData(kFOOBitMark, kFOOOneSpace, kFOOBitMark, kFOOZeroSpace,'
+        ' send_data, 32, true);\n'
+        '    send_data >>= 32;\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
-        '    // Data\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
+        '    // Data Section #4\n'
         '    // e.g. data = 0x2F2F6C6C, nbits = 32\n'
-        '    sendData(BIT_MARK, ONE_SPACE, BIT_MARK, ZERO_SPACE, data, nbits,'
-        ' true);\n'
+        '    sendData(kFOOBitMark, kFOOOneSpace, kFOOBitMark, kFOOZeroSpace,'
+        ' send_data, 32, true);\n'
+        '    send_data >>= 32;\n'
         '    // Header\n'
-        '    mark(HDR_MARK);\n'
-        '    space(HDR_SPACE);\n'
+        '    mark(kFOOHdrMark);\n'
+        '    space(kFOOHdrSpace);\n'
         '    // Gap\n'
-        '    mark(BIT_MARK);\n'
-        '    space(SPACE_GAP);\n'
-        '    space(100000);  // A 100% made up guess of the gap between'
-        ' messages.\n'
+        '    mark(kFOOBitMark);\n'
+        '    space(kFOOSpaceGap);\n'
+        '    space(kDefaultMessageGap);  // A 100% made up guess of the gap'
+        ' between messages.\n'
         '  }\n'
         '}\n'
+        '#endif  // SEND_FOO\n'
         '\n'
-        '\n'
-        '// Alternative >64 bit Function\n'
-        'void IRsend::sendXYZ(uint8_t data[], uint16_t nbytes, uint16_t repeat)'
-        ' {\n'
-        '  // nbytes should typically be XYZ_STATE_LENGTH\n'
-        '  // data should typically be:\n'
-        '  //   uint8_t data[XYZ_STATE_LENGTH] = {0x5F, 0x5F, 0x40, 0x40, 0x5F,'
+        '#if SEND_FOO\n'
+        '// Alternative >64bit function to send FOO messages\n'
+        '// Where data is:\n'
+        '//   uint8_t data[kFOOStateLength] = {0x5F, 0x5F, 0x40, 0x40, 0x5F,'
         ' 0x5F, 0x40, 0x40, 0x2F, 0x2F, 0x6C, 0x6C, 0x2F, 0x2F, 0x6C, 0x6C};\n'
-        '  // data[] is assumed to be in MSB order for this code.\n'
-        '  for (uint16_t r = 0; r <= repeat; r++) {\n'
-        '    sendGeneric(HDR_MARK, HDR_SPACE,\n'
-        '                BIT_MARK, ONE_SPACE,\n'
-        '                BIT_MARK, ZERO_SPACE,\n'
-        '                BIT_MARK\n'
-        '                100000, // 100% made-up guess at the message gap.\n'
-        '                data, nbytes,\n'
-        '                38000, // Complete guess of the modulation'
-        ' frequency.\n'
-        '                true, 0, 50);\n'
-        '}\n')
+        '//\n'
+        '// Args:\n'
+        '//   data: An array of bytes containing the IR command.\n'
+        '//         It is assumed to be in MSB order for this code.\n'
+        '//   nbytes: Nr. of bytes of data in the array. (>=kFOOStateLength)\n'
+        '//   repeat: Nr. of times the message is to be repeated.\n'
+        '//\n'
+        '// Status: ALPHA / Untested.\n'
+        'void IRsend::sendFOO(const uint8_t data[], const uint16_t nbytes,'
+        ' const uint16_t repeat) {\n'
+        '  for (uint16_t r = 0; r < repeat; r++) {\n'
+        '    uint16_t pos = 0;\n'
+        '    // Data Section #1\n'
+        '    // e.g.\n'
+        '    //   bits = 32; bytes = 4;\n'
+        '    //   *(data + pos) = {0x5F, 0x5F, 0x40, 0x40};\n'
+        '    sendGeneric(kFOOHdrMark, kFOOHdrSpace,\n'
+        '                kFOOBitMark, kFOOOneSpace,\n'
+        '                kFOOBitMark, kFOOZeroSpace,\n'
+        '                kFOOHdrMark, kFOOHdrSpace,\n'
+        '                data + pos, 4,  // Bytes\n'
+        '                kFOOFreq);\n'
+        '    pos += 4;  // Adjust by how many bytes of data we sent\n'
+        '    // Data Section #2\n'
+        '    // e.g.\n'
+        '    //   bits = 32; bytes = 4;\n'
+        '    //   *(data + pos) = {0x5F, 0x5F, 0x40, 0x40};\n'
+        '    sendGeneric(kFOOHdrMark, kFOOHdrSpace,\n'
+        '                kFOOBitMark, kFOOOneSpace,\n'
+        '                kFOOBitMark, kFOOZeroSpace,\n'
+        '                kFOOHdrMark, kFOOHdrSpace,\n'
+        '                data + pos, 4,  // Bytes\n'
+        '                kFOOFreq);\n'
+        '    pos += 4;  // Adjust by how many bytes of data we sent\n'
+        '    // Data Section #3\n'
+        '    // e.g.\n'
+        '    //   bits = 32; bytes = 4;\n'
+        '    //   *(data + pos) = {0x2F, 0x2F, 0x6C, 0x6C};\n'
+        '    sendGeneric(kFOOHdrMark, kFOOHdrSpace,\n'
+        '                kFOOBitMark, kFOOOneSpace,\n'
+        '                kFOOBitMark, kFOOZeroSpace,\n'
+        '                kFOOHdrMark, kFOOHdrSpace,\n'
+        '                data + pos, 4,  // Bytes\n'
+        '                kFOOFreq);\n'
+        '    pos += 4;  // Adjust by how many bytes of data we sent\n'
+        '    // Data Section #4\n'
+        '    // e.g.\n'
+        '    //   bits = 32; bytes = 4;\n'
+        '    //   *(data + pos) = {0x2F, 0x2F, 0x6C, 0x6C};\n'
+        '    sendGeneric(kFOOHdrMark, kFOOHdrSpace,\n'
+        '                kFOOBitMark, kFOOOneSpace,\n'
+        '                kFOOBitMark, kFOOZeroSpace,\n'
+        '                kFOOHdrMark, kFOOHdrSpace,\n'
+        '                data + pos, 4,  // Bytes\n'
+        '                kFOOFreq);\n'
+        '    pos += 4;  // Adjust by how many bytes of data we sent\n'
+        '  }\n'
+        '}\n'
+        '#endif  // SEND_FOO\n'
+        '\n'
+        "// DANGER: More than 64 bits detected. A uint64_t for 'data' won't "
+        'work!\n'
+        '#if DECODE_FOO\n'
+        '// Function should be safe up to 64 bits.\n'
+        'bool IRrecv::decodeFOO(decode_results *results, const uint16_t nbits,'
+        ' const bool strict) {\n'
+        '  if (results->rawlen < 2 * nbits + kFOOOverhead)\n'
+        '    return false;  // Too short a message to match.\n'
+        '  if (strict && nbits != kFOOBits)\n'
+        '    return false;\n'
+        '\n'
+        '  uint16_t offset = kStartOffset;\n'
+        '  uint64_t data = 0;\n'
+        '  match_result_t data_result;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Data Section #1\n'
+        '  // e.g. data_result.data = 0x5F5F4040, nbits = 32\n'
+        '  data_result = matchData(&(results->rawbuf[offset]), 32,\n'
+        '                          kFOOBitMark, kFOOOneSpace,\n'
+        '                          kFOOBitMark, kFOOZeroSpace);\n'
+        '  offset += data_result.used;\n'
+        '  if (data_result.success == false) return false;  // Fail\n'
+        '  data <<= 32;  // Make room for the new bits of data.\n'
+        '  data |= data_result.data;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Data Section #2\n'
+        '  // e.g. data_result.data = 0x5F5F4040, nbits = 32\n'
+        '  data_result = matchData(&(results->rawbuf[offset]), 32,\n'
+        '                          kFOOBitMark, kFOOOneSpace,\n'
+        '                          kFOOBitMark, kFOOZeroSpace);\n'
+        '  offset += data_result.used;\n'
+        '  if (data_result.success == false) return false;  // Fail\n'
+        '  data <<= 32;  // Make room for the new bits of data.\n'
+        '  data |= data_result.data;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Gap\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOBitMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOSpaceGap))\n'
+        '    return false;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Data Section #3\n'
+        '  // e.g. data_result.data = 0x2F2F6C6C, nbits = 32\n'
+        '  data_result = matchData(&(results->rawbuf[offset]), 32,\n'
+        '                          kFOOBitMark, kFOOOneSpace,\n'
+        '                          kFOOBitMark, kFOOZeroSpace);\n'
+        '  offset += data_result.used;\n'
+        '  if (data_result.success == false) return false;  // Fail\n'
+        '  data <<= 32;  // Make room for the new bits of data.\n'
+        '  data |= data_result.data;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Data Section #4\n'
+        '  // e.g. data_result.data = 0x2F2F6C6C, nbits = 32\n'
+        '  data_result = matchData(&(results->rawbuf[offset]), 32,\n'
+        '                          kFOOBitMark, kFOOOneSpace,\n'
+        '                          kFOOBitMark, kFOOZeroSpace);\n'
+        '  offset += data_result.used;\n'
+        '  if (data_result.success == false) return false;  // Fail\n'
+        '  data <<= 32;  // Make room for the new bits of data.\n'
+        '  data |= data_result.data;\n'
+        '\n'
+        '  // Header\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOHdrMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOHdrSpace))\n'
+        '    return false;\n'
+        '\n'
+        '  // Gap\n'
+        '  if (!matchMark(results->rawbuf[offset++], kFOOBitMark))\n'
+        '    return false;\n'
+        '  if (!matchSpace(results->rawbuf[offset++], kFOOSpaceGap))\n'
+        '    return false;\n'
+        '\n'
+        '  // Success\n'
+        '  results->decode_type = decode_type_t::FOO;\n'
+        '  results->bits = nbits;\n'
+        '  results->value = data;\n'
+        '  results->command = 0;\n'
+        '  results->address = 0;\n'
+        '  return true;\n'
+        '}\n'
+        '#endif  // DECODE_FOO\n'
+        '\n'
+        '// Note: This should be 64+ bit safe.\n'
+        '#if DECODE_FOO\n'
+        '// Function should be safe over 64 bits.\n'
+        'bool IRrecv::decodeFOO(decode_results *results, const uint16_t nbits,'
+        ' const bool strict) {\n'
+        '  if (results->rawlen < 2 * nbits + kFOOOverhead)\n'
+        '    return false;  // Too short a message to match.\n'
+        '  if (strict && nbits != kFOOBits)\n'
+        '    return false;\n'
+        '\n'
+        '  uint16_t offset = kStartOffset;\n'
+        '  uint16_t pos = 0;\n'
+        '  uint16_t used = 0;\n'
+        '\n'
+        '  // Data Section #1\n'
+        '  // e.g.\n'
+        '  //   bits = 32; bytes = 4;\n'
+        '  //   *(results->state + pos) = {0x5F, 0x5F, 0x40, 0x40};\n'
+        '  used = matchGeneric(results->rawbuf + offset, results->state + pos,'
+        '\n'
+        '                      results->rawlen - offset, 32,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace,\n'
+        '                      kFOOBitMark, kFOOOneSpace,\n'
+        '                      kFOOBitMark, kFOOZeroSpace,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace, true);\n'
+        '  if (used == 0) return false;  // We failed to find any data.\n'
+        '  offset += used;  // Adjust for how much of the message we read.\n'
+        '  pos += 4;  // Adjust by how many bytes of data we read\n'
+        '\n'
+        '  // Data Section #2\n'
+        '  // e.g.\n'
+        '  //   bits = 32; bytes = 4;\n'
+        '  //   *(results->state + pos) = {0x5F, 0x5F, 0x40, 0x40};\n'
+        '  used = matchGeneric(results->rawbuf + offset, results->state + pos,'
+        '\n'
+        '                      results->rawlen - offset, 32,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace,\n'
+        '                      kFOOBitMark, kFOOOneSpace,\n'
+        '                      kFOOBitMark, kFOOZeroSpace,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace, true);\n'
+        '  if (used == 0) return false;  // We failed to find any data.\n'
+        '  offset += used;  // Adjust for how much of the message we read.\n'
+        '  pos += 4;  // Adjust by how many bytes of data we read\n'
+        '\n'
+        '  // Data Section #3\n'
+        '  // e.g.\n'
+        '  //   bits = 32; bytes = 4;\n'
+        '  //   *(results->state + pos) = {0x2F, 0x2F, 0x6C, 0x6C};\n'
+        '  used = matchGeneric(results->rawbuf + offset, results->state + pos,'
+        '\n'
+        '                      results->rawlen - offset, 32,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace,\n'
+        '                      kFOOBitMark, kFOOOneSpace,\n'
+        '                      kFOOBitMark, kFOOZeroSpace,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace, true);\n'
+        '  if (used == 0) return false;  // We failed to find any data.\n'
+        '  offset += used;  // Adjust for how much of the message we read.\n'
+        '  pos += 4;  // Adjust by how many bytes of data we read\n'
+        '\n'
+        '  // Data Section #4\n'
+        '  // e.g.\n'
+        '  //   bits = 32; bytes = 4;\n'
+        '  //   *(results->state + pos) = {0x2F, 0x2F, 0x6C, 0x6C};\n'
+        '  used = matchGeneric(results->rawbuf + offset, results->state + pos,'
+        '\n'
+        '                      results->rawlen - offset, 32,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace,\n'
+        '                      kFOOBitMark, kFOOOneSpace,\n'
+        '                      kFOOBitMark, kFOOZeroSpace,\n'
+        '                      kFOOHdrMark, kFOOHdrSpace, true);\n'
+        '  if (used == 0) return false;  // We failed to find any data.\n'
+        '  offset += used;  // Adjust for how much of the message we read.\n'
+        '  pos += 4;  // Adjust by how many bytes of data we read\n'
+        '\n'
+        '  // Success\n'
+        '  results->decode_type = decode_type_t::FOO;\n'
+        '  results->bits = nbits;\n'
+        '  return true;\n'
+        '}\n'
+        '#endif  // DECODE_FOO\n')
+
+  def test_reduce_list(self):
+    """Tests for the reduce_list method."""
+
+    ignore = StringIO()
+    message = analyse.RawIRMessage(200, [
+        7930, 3952, 494, 1482, 520, 1482, 494, 1508, 494, 520, 494, 1482, 494,
+        520, 494, 1482, 494, 1482, 494, 3978, 494, 520, 494, 520, 494, 520, 494,
+        520, 520, 520, 494, 520, 494, 520, 494, 1482, 494
+    ], ignore)
+    test_space_data = [4496, 1660, 530, 558, 1636, 1660, 556]
+    result_list, result_dict = message.reduce_list(test_space_data)
+    self.assertEqual([4496, 1660, 558], result_list)
+    self.assertEqual({
+        558: [558, 556, 530],
+        1660: [1660, 1660, 1636],
+        4496: [4496]
+    }, result_dict)
+
+  def test_avg_list(self):
+    """Tests for the avg_list method."""
+
+    self.assertEqual(0, analyse.avg_list([]))
+    self.assertEqual(23, analyse.avg_list([10, 20, 40]))
 
 
 if __name__ == '__main__':

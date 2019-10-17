@@ -1,0 +1,9 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": false,
+    "python.formatting.provider": "yapf",
+    "terminal.integrated.env.osx": {
+        "PATH": "/Users/arihantdaga/.platformio/penv/bin:/Users/arihantdaga/.platformio/penv:/Applications/XAMPP/bin:/Users/arihantdaga/Apps/flutter/bin:/Users/arihantdaga/Apps/bin:/Users/arihantdaga/go/bin:/anaconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Library/Apple/bin:/Applications/Wireshark.app/Contents/MacOS:/Users/arihantdaga/Library/Android/sdk/tools:/Users/arihantdaga/Library/Android/sdk/tools/bin:/Users/arihantdaga/Library/Android/sdk/platform-tools",
+        "PLATFORMIO_CALLER": "vscode"
+    }
+}
