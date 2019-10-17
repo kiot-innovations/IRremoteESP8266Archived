@@ -286,7 +286,7 @@ class IRsend {
 #endif
 #if SEND_RC5
   void sendRC5(uint64_t data, uint16_t nbits = kRC5XBits,
-               uint16_t repeat = kNoRepeat);
+               uint16_t repeat = kNoRepeat, uint16_t frequency = kRC5Freq);
   uint16_t encodeRC5(uint8_t address, uint8_t command,
                      bool key_released = false);
   uint16_t encodeRC5X(uint8_t address, uint8_t command,
@@ -295,7 +295,7 @@ class IRsend {
 #endif
 #if SEND_RC6
   void sendRC6(uint64_t data, uint16_t nbits = kRC6Mode0Bits,
-               uint16_t repeat = kNoRepeat);
+               uint16_t repeat = kNoRepeat, uint16_t frequency = kRC6Freq);
   uint64_t encodeRC6(uint32_t address, uint8_t command,
                      uint16_t mode = kRC6Mode0Bits);
   uint64_t toggleRC6(uint64_t data, uint16_t nbits = kRC6Mode0Bits);

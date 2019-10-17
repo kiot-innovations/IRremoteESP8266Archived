@@ -63,12 +63,12 @@ const int16_t kSpace = 1;
 // TODO(anyone):
 //   Testing of the RC-5X components.
 void IRsend::sendRC5(uint64_t data, uint16_t nbits, uint16_t repeat,
-                     uint16_t freq) {
+                     uint16_t frequency) {
   if (nbits > sizeof(data) * 8) return;  // We can't send something that big.
   bool skipSpace = true;
   bool field_bit = true;
   // Set 36kHz IR carrier frequency & a 1/4 (25%) duty cycle.
-  enableIROut(freq, 25);
+  enableIROut(frequency, 25);
 
   if (nbits >= kRC5XBits) {  // Is this a RC-5X message?
     // field bit is the inverted MSB of RC-5X data.
@@ -238,11 +238,11 @@ uint64_t IRsend::encodeRC6(uint32_t address, uint8_t command, uint16_t mode) {
 //   http://www.sbprojects.com/knowledge/ir/rc6.php
 //   http://www.righto.com/2010/12/64-bit-rc6-codes-arduino-and-xbox.html
 //   https://en.wikipedia.org/wiki/Manchester_code
-void IRsend::sendRC6(uint64_t data, uint16_t nbits, uint16_t repeat) {
+void IRsend::sendRC6(uint64_t data, uint16_t nbits, uint16_t repeat, uint16_t frequency) {
   // Check we can send the number of bits requested.
   if (nbits > sizeof(data) * 8) return;
   // Set 36kHz IR carrier frequency & a 1/3 (33%) duty cycle.
-  enableIROut(36, 33);
+  enableIROut(freq, 33);
   for (uint16_t r = 0; r <= repeat; r++) {
     // Header
     mark(kRc6HdrMark);

@@ -512,6 +512,7 @@ const uint16_t kProntoMinLength = 6;
 const uint16_t kRC5RawBits = 14;
 const uint16_t kRC5Bits = kRC5RawBits - 2;
 const uint16_t kRC5XBits = kRC5RawBits - 1;
+const uint16_t kRC5Freq , kRC6Freq = 36;
 const uint16_t kRC6Mode0Bits = 20;  // Excludes the 'start' bit.
 const uint16_t kRC6_36Bits = 36;    // Excludes the 'start' bit.
 const uint16_t kRCMMBits = 24;
