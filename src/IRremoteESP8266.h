@@ -1,45 +1,52 @@
- /***************************************************
- * IRremote for ESP8266
- *
- * Based on the IRremote library for Arduino by Ken Shirriff
- * Version 0.11 August, 2009
- * Copyright 2009 Ken Shirriff
- * For details, see http://arcfn.com/2009/08/multi-protocol-infrared-remote-library.html
- *
- * Edited by Mitra to add new controller SANYO
- *
- * Interrupt code based on NECIRrcv by Joe Knapp
- * http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1210243556
- * Also influenced by http://zovirl.com/2008/11/12/building-a-universal-remote-with-an-arduino/
- *
- * JVC and Panasonic protocol added by Kristian Lauszus (Thanks to zenwheel and other people at the original blog post)
- * LG added by Darryl Smith (based on the JVC protocol)
- * Whynter A/C ARC-110WD added by Francesco Meschia
- * Coolix A/C / heatpump added by (send) bakrus & (decode) crankyoldgit
- * Denon: sendDenon, decodeDenon added by Massimiliano Pinto
-          (from https://github.com/z3t0/Arduino-IRremote/blob/master/ir_Denon.cpp)
- * Kelvinator A/C and Sherwood added by crankyoldgit
- * Mitsubishi (TV) sending added by crankyoldgit
- * Pronto code sending added by crankyoldgit
- * Mitsubishi & Toshiba A/C added by crankyoldgit
- *     (derived from https://github.com/r45635/HVAC-IR-Control)
- * DISH decode by marcosamarinho
- * Gree Heatpump sending added by Ville Skyttä (scop)
- *     (derived from https://github.com/ToniA/arduino-heatpumpir/blob/master/GreeHeatpumpIR.cpp)
- * Updated by markszabo (https://github.com/crankyoldgit/IRremoteESP8266) for sending IR code on ESP8266
- * Updated by Sebastien Warin (http://sebastien.warin.fr) for receiving IR code on ESP8266
- *
- * Updated by sillyfrog for Daikin, adopted from
- * (https://github.com/mharizanov/Daikin-AC-remote-control-over-the-Internet/)
- * Fujitsu A/C code added by jonnygraham
- * Trotec AC code by stufisher
- * Carrier & Haier AC code by crankyoldgit
- * Vestel AC code by Erdem U. Altınyurt
- * Teco AC code by Fabien Valthier (hcoohb)
- * Mitsubishi 112 AC Code by kuchel77
- *
- *  GPL license, all text above must be included in any redistribution
- ****************************************************/
+/***************************************************
+* IRremote for ESP8266
+*
+* Based on the IRremote library for Arduino by Ken Shirriff
+* Version 0.11 August, 2009
+* Copyright 2009 Ken Shirriff
+* For details, see
+http://arcfn.com/2009/08/multi-protocol-infrared-remote-library.html
+*
+* Edited by Mitra to add new controller SANYO
+*
+* Interrupt code based on NECIRrcv by Joe Knapp
+* http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1210243556
+* Also influenced by
+http://zovirl.com/2008/11/12/building-a-universal-remote-with-an-arduino/
+*
+* JVC and Panasonic protocol added by Kristian Lauszus (Thanks to zenwheel and
+other people at the original blog post)
+* LG added by Darryl Smith (based on the JVC protocol)
+* Whynter A/C ARC-110WD added by Francesco Meschia
+* Coolix A/C / heatpump added by (send) bakrus & (decode) crankyoldgit
+* Denon: sendDenon, decodeDenon added by Massimiliano Pinto
+         (from
+https://github.com/z3t0/Arduino-IRremote/blob/master/ir_Denon.cpp)
+* Kelvinator A/C and Sherwood added by crankyoldgit
+* Mitsubishi (TV) sending added by crankyoldgit
+* Pronto code sending added by crankyoldgit
+* Mitsubishi & Toshiba A/C added by crankyoldgit
+*     (derived from https://github.com/r45635/HVAC-IR-Control)
+* DISH decode by marcosamarinho
+* Gree Heatpump sending added by Ville Skyttä (scop)
+*     (derived from
+https://github.com/ToniA/arduino-heatpumpir/blob/master/GreeHeatpumpIR.cpp)
+* Updated by markszabo (https://github.com/crankyoldgit/IRremoteESP8266) for
+sending IR code on ESP8266
+* Updated by Sebastien Warin (http://sebastien.warin.fr) for receiving IR code
+on ESP8266
+*
+* Updated by sillyfrog for Daikin, adopted from
+* (https://github.com/mharizanov/Daikin-AC-remote-control-over-the-Internet/)
+* Fujitsu A/C code added by jonnygraham
+* Trotec AC code by stufisher
+* Carrier & Haier AC code by crankyoldgit
+* Vestel AC code by Erdem U. Altınyurt
+* Teco AC code by Fabien Valthier (hcoohb)
+* Mitsubishi 112 AC Code by kuchel77
+*
+*  GPL license, all text above must be included in any redistribution
+****************************************************/
 
 #ifndef IRREMOTEESP8266_H_
 #define IRREMOTEESP8266_H_
@@ -56,7 +63,7 @@
 
 // Set the language & locale for the library. See the `locale` dir for options.
 #ifndef _IR_LOCALE_
-#define _IR_LOCALE_ en-AU
+#define _IR_LOCALE_ en - AU
 #endif  // _IR_LOCALE_
 
 // Supported IR protocols
@@ -64,232 +71,231 @@
 // Disable (set to false) all the protocols you do not need/want!
 // The Air Conditioner protocols are the most expensive memory-wise.
 //
-#define DECODE_HASH            true  // Semi-unique code for unknown messages
+#define DECODE_HASH true  // Semi-unique code for unknown messages
 
-#define SEND_RAW               true
+#define SEND_RAW true
 
-#define DECODE_NEC             true
-#define SEND_NEC               true
+#define DECODE_NEC true
+#define SEND_NEC true
 
-#define DECODE_SHERWOOD        true  // Doesn't exist. Actually is DECODE_NEC
-#define SEND_SHERWOOD          true
+#define DECODE_SHERWOOD true  // Doesn't exist. Actually is DECODE_NEC
+#define SEND_SHERWOOD true
 
-#define DECODE_RC5             true
-#define SEND_RC5               true
+#define DECODE_RC5 true
+#define SEND_RC5 true
 
-#define DECODE_RC6             true
-#define SEND_RC6               true
+#define DECODE_RC6 true
+#define SEND_RC6 true
 
-#define DECODE_RCMM            true
-#define SEND_RCMM              true
+#define DECODE_RCMM true
+#define SEND_RCMM true
 
-#define DECODE_SONY            true
-#define SEND_SONY              true
+#define DECODE_SONY true
+#define SEND_SONY true
 
-#define DECODE_PANASONIC       true
-#define SEND_PANASONIC         true
+#define DECODE_PANASONIC true
+#define SEND_PANASONIC true
 
-#define DECODE_JVC             true
-#define SEND_JVC               true
+#define DECODE_JVC true
+#define SEND_JVC true
 
-#define DECODE_SAMSUNG         true
-#define SEND_SAMSUNG           true
+#define DECODE_SAMSUNG true
+#define SEND_SAMSUNG true
 
-#define DECODE_SAMSUNG36       true
-#define SEND_SAMSUNG36         true
+#define DECODE_SAMSUNG36 true
+#define SEND_SAMSUNG36 true
 
-#define DECODE_SAMSUNG_AC      true
-#define SEND_SAMSUNG_AC        true
+#define DECODE_SAMSUNG_AC true
+#define SEND_SAMSUNG_AC true
 
-#define DECODE_WHYNTER         true
-#define SEND_WHYNTER           true
+#define DECODE_WHYNTER true
+#define SEND_WHYNTER true
 
-#define DECODE_AIWA_RC_T501    true
-#define SEND_AIWA_RC_T501      true
+#define DECODE_AIWA_RC_T501 true
+#define SEND_AIWA_RC_T501 true
 
-#define DECODE_LG              true
-#define SEND_LG                true
+#define DECODE_LG true
+#define SEND_LG true
 
-#define DECODE_SANYO           true
-#define SEND_SANYO             true
+#define DECODE_SANYO true
+#define SEND_SANYO true
 
-#define DECODE_MITSUBISHI      true
-#define SEND_MITSUBISHI        true
+#define DECODE_MITSUBISHI true
+#define SEND_MITSUBISHI true
 
-#define DECODE_MITSUBISHI2     true
-#define SEND_MITSUBISHI2       true
+#define DECODE_MITSUBISHI2 true
+#define SEND_MITSUBISHI2 true
 
-#define DECODE_DISH            true
-#define SEND_DISH              true
+#define DECODE_DISH true
+#define SEND_DISH true
 
-#define DECODE_SHARP           true
-#define SEND_SHARP             true
+#define DECODE_SHARP true
+#define SEND_SHARP true
 
-#define DECODE_SHARP_AC        true
-#define SEND_SHARP_AC          true
+#define DECODE_SHARP_AC true
+#define SEND_SHARP_AC true
 
-#define DECODE_DENON           true
-#define SEND_DENON             true
+#define DECODE_DENON true
+#define SEND_DENON true
 
-#define DECODE_KELVINATOR      true
-#define SEND_KELVINATOR        true
+#define DECODE_KELVINATOR true
+#define SEND_KELVINATOR true
 
-#define DECODE_MITSUBISHI_AC   true  // Beta.
-#define SEND_MITSUBISHI_AC     true
+#define DECODE_MITSUBISHI_AC true  // Beta.
+#define SEND_MITSUBISHI_AC true
 
-#define DECODE_MITSUBISHI136   true
-#define SEND_MITSUBISHI136     true
+#define DECODE_MITSUBISHI136 true
+#define SEND_MITSUBISHI136 true
 
-#define DECODE_MITSUBISHI112   true
-#define SEND_MITSUBISHI112     true
+#define DECODE_MITSUBISHI112 true
+#define SEND_MITSUBISHI112 true
 
-#define DECODE_FUJITSU_AC      true
-#define SEND_FUJITSU_AC        true
+#define DECODE_FUJITSU_AC true
+#define SEND_FUJITSU_AC true
 
-#define DECODE_INAX            true
-#define SEND_INAX              true
+#define DECODE_INAX true
+#define SEND_INAX true
 
-#define DECODE_DAIKIN          true
-#define SEND_DAIKIN            true
+#define DECODE_DAIKIN true
+#define SEND_DAIKIN true
 
-#define DECODE_COOLIX          true
-#define SEND_COOLIX            true
+#define DECODE_COOLIX true
+#define SEND_COOLIX true
 
-#define DECODE_GLOBALCACHE     false  // Not written.
-#define SEND_GLOBALCACHE       true
+#define DECODE_GLOBALCACHE false  // Not written.
+#define SEND_GLOBALCACHE true
 
-#define DECODE_GOODWEATHER     true
-#define SEND_GOODWEATHER       true
+#define DECODE_GOODWEATHER true
+#define SEND_GOODWEATHER true
 
-#define DECODE_GREE            true
-#define SEND_GREE              true
+#define DECODE_GREE true
+#define SEND_GREE true
 
-#define DECODE_PRONTO          false  // Not written.
-#define SEND_PRONTO            true
+#define DECODE_PRONTO false  // Not written.
+#define SEND_PRONTO true
 
-#define DECODE_ARGO            true  // Experimental
-#define SEND_ARGO              true
+#define DECODE_ARGO true  // Experimental
+#define SEND_ARGO true
 
-#define DECODE_TROTEC          true
-#define SEND_TROTEC            true
+#define DECODE_TROTEC true
+#define SEND_TROTEC true
 
-#define DECODE_NIKAI           true
-#define SEND_NIKAI             true
+#define DECODE_NIKAI true
+#define SEND_NIKAI true
 
-#define DECODE_TOSHIBA_AC      true
-#define SEND_TOSHIBA_AC        true
+#define DECODE_TOSHIBA_AC true
+#define SEND_TOSHIBA_AC true
 
-#define DECODE_MAGIQUEST       true
-#define SEND_MAGIQUEST         true
+#define DECODE_MAGIQUEST true
+#define SEND_MAGIQUEST true
 
-#define DECODE_MIDEA           true
-#define SEND_MIDEA             true
+#define DECODE_MIDEA true
+#define SEND_MIDEA true
 
-#define DECODE_LASERTAG        true
-#define SEND_LASERTAG          true
+#define DECODE_LASERTAG true
+#define SEND_LASERTAG true
 
-#define DECODE_CARRIER_AC      true
-#define SEND_CARRIER_AC        true
+#define DECODE_CARRIER_AC true
+#define SEND_CARRIER_AC true
 
-#define DECODE_HAIER_AC        true
-#define SEND_HAIER_AC          true
+#define DECODE_HAIER_AC true
+#define SEND_HAIER_AC true
 
-#define DECODE_HITACHI_AC      true
-#define SEND_HITACHI_AC        true
+#define DECODE_HITACHI_AC true
+#define SEND_HITACHI_AC true
 
-#define DECODE_HITACHI_AC1     true
-#define SEND_HITACHI_AC1       true
+#define DECODE_HITACHI_AC1 true
+#define SEND_HITACHI_AC1 true
 
-#define DECODE_HITACHI_AC2     true
-#define SEND_HITACHI_AC2       true
+#define DECODE_HITACHI_AC2 true
+#define SEND_HITACHI_AC2 true
 
-#define DECODE_GICABLE         true
-#define SEND_GICABLE           true
+#define DECODE_GICABLE true
+#define SEND_GICABLE true
 
-#define DECODE_HAIER_AC_YRW02  true
-#define SEND_HAIER_AC_YRW02    true
+#define DECODE_HAIER_AC_YRW02 true
+#define SEND_HAIER_AC_YRW02 true
 
-#define DECODE_WHIRLPOOL_AC    true
-#define SEND_WHIRLPOOL_AC      true
+#define DECODE_WHIRLPOOL_AC true
+#define SEND_WHIRLPOOL_AC true
 
-#define DECODE_LUTRON          true
-#define SEND_LUTRON            true
+#define DECODE_LUTRON true
+#define SEND_LUTRON true
 
-#define DECODE_ELECTRA_AC      true
-#define SEND_ELECTRA_AC        true
+#define DECODE_ELECTRA_AC true
+#define SEND_ELECTRA_AC true
 
-#define DECODE_PANASONIC_AC    true
-#define SEND_PANASONIC_AC      true
+#define DECODE_PANASONIC_AC true
+#define SEND_PANASONIC_AC true
 
-#define DECODE_MWM             true
-#define SEND_MWM               true
+#define DECODE_MWM true
+#define SEND_MWM true
 
-#define DECODE_PIONEER         true
-#define SEND_PIONEER           true
+#define DECODE_PIONEER true
+#define SEND_PIONEER true
 
-#define DECODE_DAIKIN2         true
-#define SEND_DAIKIN2           true
+#define DECODE_DAIKIN2 true
+#define SEND_DAIKIN2 true
 
-#define DECODE_VESTEL_AC       true
-#define SEND_VESTEL_AC         true
+#define DECODE_VESTEL_AC true
+#define SEND_VESTEL_AC true
 
-#define DECODE_TECO            true
-#define SEND_TECO              true
+#define DECODE_TECO true
+#define SEND_TECO true
 
-#define DECODE_TCL112AC        true
-#define SEND_TCL112AC          true
+#define DECODE_TCL112AC true
+#define SEND_TCL112AC true
 
-#define DECODE_LEGOPF          true
-#define SEND_LEGOPF            true
+#define DECODE_LEGOPF true
+#define SEND_LEGOPF true
 
 #define DECODE_MITSUBISHIHEAVY true
-#define SEND_MITSUBISHIHEAVY   true
+#define SEND_MITSUBISHIHEAVY true
 
-#define DECODE_DAIKIN216       true
-#define SEND_DAIKIN216         true
+#define DECODE_DAIKIN216 true
+#define SEND_DAIKIN216 true
 
-#define DECODE_DAIKIN160       true
-#define SEND_DAIKIN160         true
+#define DECODE_DAIKIN160 true
+#define SEND_DAIKIN160 true
 
-#define DECODE_NEOCLIMA        true
-#define SEND_NEOCLIMA          true
+#define DECODE_NEOCLIMA true
+#define SEND_NEOCLIMA true
 
-#define DECODE_DAIKIN176       true
-#define SEND_DAIKIN176         true
+#define DECODE_DAIKIN176 true
+#define SEND_DAIKIN176 true
 
-#define DECODE_DAIKIN128       true
-#define SEND_DAIKIN128         true
+#define DECODE_DAIKIN128 true
+#define SEND_DAIKIN128 true
 
-#define DECODE_AMCOR           true
-#define SEND_AMCOR             true
+#define DECODE_AMCOR true
+#define SEND_AMCOR true
 
-#define DECODE_DAIKIN152       true
-#define SEND_DAIKIN152         true
+#define DECODE_DAIKIN152 true
+#define SEND_DAIKIN152 true
 
-#define DECODE_RCA             false
-#define SEND_RCA               true
+#define DECODE_RCA false
+#define SEND_RCA true
 
-#define DECODE_NECSHORT        false
-#define SEND_NECSHORT          true
+#define DECODE_NECSHORT false
+#define SEND_NECSHORT true
 
-#define DECODE_XMP1            false
-#define SEND_XMP1              true
+#define DECODE_XMP1 false
+#define SEND_XMP1 true
 
-
-#if (DECODE_ARGO || DECODE_DAIKIN || DECODE_FUJITSU_AC || DECODE_GREE || \
-     DECODE_KELVINATOR || DECODE_MITSUBISHI_AC || DECODE_TOSHIBA_AC || \
-     DECODE_TROTEC || DECODE_HAIER_AC || DECODE_HITACHI_AC || \
+#if (DECODE_ARGO || DECODE_DAIKIN || DECODE_FUJITSU_AC || DECODE_GREE ||  \
+     DECODE_KELVINATOR || DECODE_MITSUBISHI_AC || DECODE_TOSHIBA_AC ||    \
+     DECODE_TROTEC || DECODE_HAIER_AC || DECODE_HITACHI_AC ||             \
      DECODE_HITACHI_AC1 || DECODE_HITACHI_AC2 || DECODE_HAIER_AC_YRW02 || \
-     DECODE_WHIRLPOOL_AC || DECODE_SAMSUNG_AC || DECODE_ELECTRA_AC || \
-     DECODE_PANASONIC_AC || DECODE_MWM || DECODE_DAIKIN2 || \
-     DECODE_VESTEL_AC || DECODE_TCL112AC || DECODE_MITSUBISHIHEAVY || \
-     DECODE_DAIKIN216 || DECODE_SHARP_AC || DECODE_DAIKIN160 || \
-     DECODE_NEOCLIMA || DECODE_DAIKIN176 || DECODE_DAIKIN128 || \
-     DECODE_AMCOR || DECODE_DAIKIN152 || DECODE_MITSUBISHI136 || \
+     DECODE_WHIRLPOOL_AC || DECODE_SAMSUNG_AC || DECODE_ELECTRA_AC ||     \
+     DECODE_PANASONIC_AC || DECODE_MWM || DECODE_DAIKIN2 ||               \
+     DECODE_VESTEL_AC || DECODE_TCL112AC || DECODE_MITSUBISHIHEAVY ||     \
+     DECODE_DAIKIN216 || DECODE_SHARP_AC || DECODE_DAIKIN160 ||           \
+     DECODE_NEOCLIMA || DECODE_DAIKIN176 || DECODE_DAIKIN128 ||           \
+     DECODE_AMCOR || DECODE_DAIKIN152 || DECODE_MITSUBISHI136 ||          \
      DECODE_MITSUBISHI112)
 #define DECODE_AC true  // We need some common infrastructure for decoding A/Cs.
 #else
-#define DECODE_AC false   // We don't need that infrastructure.
+#define DECODE_AC false  // We don't need that infrastructure.
 #endif
 
 // Use millisecond 'delay()' calls where we can to avoid tripping the WDT.
@@ -335,7 +341,7 @@ enum decode_type_t {
   ARGO,
   TROTEC,
   NIKAI,
-  RAW,  // Technically not a protocol, but an encoding. (30)
+  RAW,          // Technically not a protocol, but an encoding. (30)
   GLOBALCACHE,  // Technically not a protocol, but an encoding.
   TOSHIBA_AC,
   FUJITSU_AC,
@@ -507,7 +513,7 @@ const uint16_t kRC5RawBits = 14;
 const uint16_t kRC5Bits = kRC5RawBits - 2;
 const uint16_t kRC5XBits = kRC5RawBits - 1;
 const uint16_t kRC6Mode0Bits = 20;  // Excludes the 'start' bit.
-const uint16_t kRC6_36Bits = 36;  // Excludes the 'start' bit.
+const uint16_t kRC6_36Bits = 36;    // Excludes the 'start' bit.
 const uint16_t kRCMMBits = 24;
 const uint16_t kSamsungBits = 32;
 const uint16_t kSamsung36Bits = 36;
@@ -519,15 +525,15 @@ const uint16_t kSamsungAcDefaultRepeat = kNoRepeat;
 const uint16_t kSanyoSA8650BBits = 12;
 const uint16_t kSanyoLC7461AddressBits = 13;
 const uint16_t kSanyoLC7461CommandBits = 8;
-const uint16_t kSanyoLC7461Bits = (kSanyoLC7461AddressBits +
-                                   kSanyoLC7461CommandBits) * 2;
-const uint8_t  kSharpAddressBits = 5;
-const uint8_t  kSharpCommandBits = 8;
+const uint16_t kSanyoLC7461Bits =
+    (kSanyoLC7461AddressBits + kSanyoLC7461CommandBits) * 2;
+const uint8_t kSharpAddressBits = 5;
+const uint8_t kSharpCommandBits = 8;
 const uint16_t kSharpBits = kSharpAddressBits + kSharpCommandBits + 2;  // 15
 const uint16_t kSharpAcStateLength = 13;
 const uint16_t kSharpAcBits = kSharpAcStateLength * 8;  // 104
 const uint16_t kSharpAcDefaultRepeat = kNoRepeat;
-const uint8_t  kSherwoodBits = kNECBits;
+const uint8_t kSherwoodBits = kNECBits;
 const uint16_t kSherwoodMinRepeat = kSingleRepeat;
 const uint16_t kSony12Bits = 12;
 const uint16_t kSony15Bits = 15;
@@ -549,79 +555,90 @@ const uint16_t kWhirlpoolAcStateLength = 21;
 const uint16_t kWhirlpoolAcBits = kWhirlpoolAcStateLength * 8;
 const uint16_t kWhirlpoolAcDefaultRepeat = kNoRepeat;
 const uint16_t kWhynterBits = 32;
-const uint8_t  kVestelAcBits = 56;
-const uint16_t kRCABits = 24;  // Excludes the 'start' bit.
+const uint8_t kVestelAcBits = 56;
+const uint16_t kRCABits = 24;       // Excludes the 'start' bit.
 const uint16_t kNECShortBits = 32;  // Excludes the 'start' bit.
-const uint16_t kXMP1Bits = 64;  // Excludes the 'start' bit.
-
+const uint16_t kXMP1Bits = 64;      // Excludes the 'start' bit.
 
 // Legacy defines. (Deprecated)
-#define AIWA_RC_T501_BITS             kAiwaRcT501Bits
-#define ARGO_COMMAND_LENGTH           kArgoStateLength
-#define COOLIX_BITS                   kCoolixBits
-#define CARRIER_AC_BITS               kCarrierAcBits
-#define DAIKIN_COMMAND_LENGTH         kDaikinStateLength
-#define DENON_BITS                    kDenonBits
-#define DENON_48_BITS                 kDenon48Bits
-#define DENON_LEGACY_BITS             kDenonLegacyBits
-#define DISH_BITS                     kDishBits
-#define FUJITSU_AC_MIN_REPEAT         kFujitsuAcMinRepeat
-#define FUJITSU_AC_STATE_LENGTH       kFujitsuAcStateLength
+#define AIWA_RC_T501_BITS kAiwaRcT501Bits
+#define ARGO_COMMAND_LENGTH kArgoStateLength
+#define COOLIX_BITS kCoolixBits
+#define CARRIER_AC_BITS kCarrierAcBits
+#define DAIKIN_COMMAND_LENGTH kDaikinStateLength
+#define DENON_BITS kDenonBits
+#define DENON_48_BITS kDenon48Bits
+#define DENON_LEGACY_BITS kDenonLegacyBits
+#define DISH_BITS kDishBits
+#define FUJITSU_AC_MIN_REPEAT kFujitsuAcMinRepeat
+#define FUJITSU_AC_STATE_LENGTH kFujitsuAcStateLength
 #define FUJITSU_AC_STATE_LENGTH_SHORT kFujitsuAcStateLengthShort
-#define FUJITSU_AC_BITS               kFujitsuAcBits
-#define FUJITSU_AC_MIN_BITS           kFujitsuAcMinBits
-#define GICABLE_BITS                  kGicableBits
-#define GREE_STATE_LENGTH             kGreeStateLength
-#define HAIER_AC_STATE_LENGTH         kHaierACStateLength
-#define HAIER_AC_YRW02_STATE_LENGTH   kHaierACYRW02StateLength
-#define HITACHI_AC_STATE_LENGTH       kHitachiAcStateLength
-#define HITACHI_AC_BITS               kHitachiAcBits
-#define HITACHI_AC1_STATE_LENGTH      kHitachiAc1StateLength
-#define HITACHI_AC1_BITS              kHitachiAc1Bits
-#define HITACHI_AC2_STATE_LENGTH      kHitachiAc2StateLength
-#define HITACHI_AC2_BITS              kHitachiAc2Bits
-#define JVC_BITS                      kJvcBits
-#define KELVINATOR_STATE_LENGTH       kKelvinatorStateLength
-#define LASERTAG_BITS                 kLasertagBits
-#define LG_BITS                       kLgBits
-#define LG32_BITS                     kLg32Bits
-#define MAGIQUEST_BITS                kMagiquestBits
-#define MIDEA_BITS                    kMideaBits
-#define MITSUBISHI_BITS               kMitsubishiBits
-#define MITSUBISHI_AC_STATE_LENGTH    kMitsubishiACStateLength
-#define NEC_BITS                      kNECBits
-#define NIKAI_BITS                    kNikaiBits
-#define PANASONIC_BITS                kPanasonicBits
-#define RC5_BITS                      kRC5Bits
-#define RC5X_BITS                     kRC5XBits
-#define RC6_MODE0_BITS                kRC6Mode0Bits
-#define RC6_36_BITS                   kRC6_36Bits
-#define RCMM_BITS                     kRCMMBits
-#define SANYO_LC7461_BITS             kSanyoLC7461Bits
-#define SAMSUNG_BITS                  kSamsungBits
-#define SANYO_SA8650B_BITS            kSanyoSA8650BBits
-#define SHARP_BITS                    kSharpBits
-#define SHERWOOD_BITS                 kSherwoodBits
-#define SONY_12_BITS                  kSony12Bits
-#define SONY_15_BITS                  kSony15Bits
-#define SONY_20_BITS                  kSony20Bits
-#define TOSHIBA_AC_STATE_LENGTH       kToshibaACStateLength
-#define TROTEC_COMMAND_LENGTH         kTrotecStateLength
-#define WHYNTER_BITS                  kWhynterBits
+#define FUJITSU_AC_BITS kFujitsuAcBits
+#define FUJITSU_AC_MIN_BITS kFujitsuAcMinBits
+#define GICABLE_BITS kGicableBits
+#define GREE_STATE_LENGTH kGreeStateLength
+#define HAIER_AC_STATE_LENGTH kHaierACStateLength
+#define HAIER_AC_YRW02_STATE_LENGTH kHaierACYRW02StateLength
+#define HITACHI_AC_STATE_LENGTH kHitachiAcStateLength
+#define HITACHI_AC_BITS kHitachiAcBits
+#define HITACHI_AC1_STATE_LENGTH kHitachiAc1StateLength
+#define HITACHI_AC1_BITS kHitachiAc1Bits
+#define HITACHI_AC2_STATE_LENGTH kHitachiAc2StateLength
+#define HITACHI_AC2_BITS kHitachiAc2Bits
+#define JVC_BITS kJvcBits
+#define KELVINATOR_STATE_LENGTH kKelvinatorStateLength
+#define LASERTAG_BITS kLasertagBits
+#define LG_BITS kLgBits
+#define LG32_BITS kLg32Bits
+#define MAGIQUEST_BITS kMagiquestBits
+#define MIDEA_BITS kMideaBits
+#define MITSUBISHI_BITS kMitsubishiBits
+#define MITSUBISHI_AC_STATE_LENGTH kMitsubishiACStateLength
+#define NEC_BITS kNECBits
+#define NIKAI_BITS kNikaiBits
+#define PANASONIC_BITS kPanasonicBits
+#define RC5_BITS kRC5Bits
+#define RC5X_BITS kRC5XBits
+#define RC6_MODE0_BITS kRC6Mode0Bits
+#define RC6_36_BITS kRC6_36Bits
+#define RCMM_BITS kRCMMBits
+#define SANYO_LC7461_BITS kSanyoLC7461Bits
+#define SAMSUNG_BITS kSamsungBits
+#define SANYO_SA8650B_BITS kSanyoSA8650BBits
+#define SHARP_BITS kSharpBits
+#define SHERWOOD_BITS kSherwoodBits
+#define SONY_12_BITS kSony12Bits
+#define SONY_15_BITS kSony15Bits
+#define SONY_20_BITS kSony20Bits
+#define TOSHIBA_AC_STATE_LENGTH kToshibaACStateLength
+#define TROTEC_COMMAND_LENGTH kTrotecStateLength
+#define WHYNTER_BITS kWhynterBits
 
 // Turn on Debugging information by uncommenting the following line.
 // #define DEBUG 1
 
 #ifdef DEBUG
 #ifdef UNIT_TEST
-#define DPRINT(x) do { std::cout << x; } while (0)
-#define DPRINTLN(x) do { std::cout << x << std::endl; } while (0)
+#define DPRINT(x)   \
+  do {              \
+    std::cout << x; \
+  } while (0)
+#define DPRINTLN(x)              \
+  do {                           \
+    std::cout << x << std::endl; \
+  } while (0)
 #endif  // UNIT_TEST
 #ifdef ARDUINO
-#define DPRINT(x) do { Serial.print(x); } while (0)
-#define DPRINTLN(x) do { Serial.println(x); } while (0)
+#define DPRINT(x)    \
+  do {               \
+    Serial.print(x); \
+  } while (0)
+#define DPRINTLN(x)    \
+  do {                 \
+    Serial.println(x); \
+  } while (0)
 #endif  // ARDUINO
-#else  // DEBUG
+#else   // DEBUG
 #define DPRINT(x)
 #define DPRINTLN(x)
 #endif  // DEBUG

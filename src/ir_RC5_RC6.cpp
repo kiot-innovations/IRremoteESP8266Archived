@@ -62,12 +62,13 @@ const int16_t kSpace = 1;
 //   https://en.wikipedia.org/wiki/Manchester_code
 // TODO(anyone):
 //   Testing of the RC-5X components.
-void IRsend::sendRC5(uint64_t data, uint16_t nbits, uint16_t repeat) {
+void IRsend::sendRC5(uint64_t data, uint16_t nbits, uint16_t repeat,
+                     uint16_t freq) {
   if (nbits > sizeof(data) * 8) return;  // We can't send something that big.
   bool skipSpace = true;
   bool field_bit = true;
   // Set 36kHz IR carrier frequency & a 1/4 (25%) duty cycle.
-  enableIROut(36, 25);
+  enableIROut(freq, 25);
 
   if (nbits >= kRC5XBits) {  // Is this a RC-5X message?
     // field bit is the inverted MSB of RC-5X data.
